@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cluster &amp; Culture — AI Benchmark Explorer</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+</head>
+<body>
+
+  <nav id="top-nav">
+    <span class="nav-brand">Cluster &amp; Culture</span>
+    <div class="nav-links">
+      <button class="nav-btn active" id="navbtn-pca"      onclick="showPage('pca')">PCA Explorer</button>
+      <button class="nav-btn"        id="navbtn-custom"   onclick="showPage('custom')">Custom Axes</button>
+      <button class="nav-btn"        id="navbtn-classify" onclick="showPage('classify')">Classification</button>
+      <button class="nav-btn"        id="navbtn-info"     onclick="showPage('info')">Benchmarks</button>
+    </div>
+    <span class="nav-sub">Interactive AI Benchmark Explorer</span>
+  </nav>
+
+  <div id="pages">
+
+    <!-- ══════════════════════════════ PCA PAGE ══════════════════════════════ -->
+    <div class="page active" id="page-pca">
+      <aside class="sidebar">
+
+        <div class="section">
+          <h2 class="section-title">Plot Settings</h2>
+          <div class="control-group">
+            <label class="control-label">Dimensions</label>
+            <div class="btn-group">
+              <button class="btn-toggle active" id="pca-btn2d" onclick="setPcaDims(2)">2D</button>
+              <button class="btn-toggle"        id="pca-btn3d" onclick="setPcaDims(3)">3D</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="pca-color-by">Color By</label>
+            <select id="pca-color-by">
+              <option value="Origin">Origin / Country</option>
+              <option value="Release Year">Release Year</option>
+              <option value="Company">Company (top 20)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">PCA Benchmarks</h2>
+          <p class="hint">Which benchmark scores define the components.</p>
+          <div class="list-header">
+            <span class="list-label">Primary (low sparsity)</span>
+            <div class="list-actions">
+              <button class="btn-link" onclick="selectAll('pca-bench__',true)">All</button>
+              <span class="sep">·</span>
+              <button class="btn-link" onclick="selectAll('pca-bench__',false)">None</button>
+            </div>
+          </div>
+          <div id="pca-benchmark-list" class="checkbox-list"></div>
+          <button class="btn-link sparse-toggle" id="pca-toggle-sparse">
+            <span id="pca-sparse-icon">▶</span> Sparse benchmarks (≥97% null)
+          </button>
+          <div id="pca-sparse-benchmarks" class="checkbox-list hidden"></div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Filters</h2>
+          <div class="control-group">
+            <div class="list-header">
+              <label class="control-label">Origin</label>
+              <div class="list-actions">
+                <button class="btn-link" onclick="selectAll('pca-origin__',true)">All</button>
+                <span class="sep">·</span>
+                <button class="btn-link" onclick="selectAll('pca-origin__',false)">None</button>
+              </div>
+            </div>
+            <div id="pca-origin-list" class="checkbox-list"></div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Release Year</label>
+            <div class="range-row">
+              <select id="pca-year-min"></select>
+              <span class="range-sep">→</span>
+              <select id="pca-year-max"></select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="fetchAndRenderPCA()">Apply &amp; Recompute</button>
+
+        <div class="section" id="pca-loadings-section" style="display:none">
+          <h2 class="section-title">PC Composition <span class="hint-inline">— hover axis labels</span></h2>
+          <div id="pca-loadings-content"></div>
+        </div>
+      </aside>
+
+      <main>
+        <div class="stats-bar">
+          <div class="stat"><span class="stat-label">Models</span><span class="stat-value" id="pca-stat-count">—</span></div>
+          <div class="stat"><span class="stat-label">PC1 variance</span><span class="stat-value" id="pca-stat-pc1">—</span></div>
+          <div class="stat"><span class="stat-label">PC2 variance</span><span class="stat-value" id="pca-stat-pc2">—</span></div>
+          <div class="stat" id="pca-stat-pc3-wrap" style="display:none"><span class="stat-label">PC3 variance</span><span class="stat-value" id="pca-stat-pc3">—</span></div>
+          <div class="stat"><span class="stat-label">Total explained</span><span class="stat-value" id="pca-stat-total">—</span></div>
+          <div class="stat"><span class="stat-label">Benchmarks</span><span class="stat-value" id="pca-stat-benches">—</span></div>
+        </div>
+        <div class="chart-container">
+          <div class="loading-overlay hidden" id="pca-loading"><div class="spinner"></div><p>Computing PCA…</p></div>
+          <div class="empty-state hidden" id="pca-empty"><p class="empty-msg" id="pca-empty-msg">No data.</p></div>
+          <div id="chart-pca" class="chart-div"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ══════════════════════════ CUSTOM AXES PAGE ══════════════════════════ -->
+    <div class="page" id="page-custom">
+      <aside class="sidebar">
+
+        <div class="section">
+          <h2 class="section-title">Plot Settings</h2>
+          <div class="control-group">
+            <label class="control-label">Dimensions</label>
+            <div class="btn-group">
+              <button class="btn-toggle active" id="cx-btn2d" onclick="setCxDims(2)">2D</button>
+              <button class="btn-toggle"        id="cx-btn3d" onclick="setCxDims(3)">3D</button>
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="cx-color-by">Color By</label>
+            <select id="cx-color-by">
+              <option value="Origin">Origin / Country</option>
+              <option value="Release Year">Release Year</option>
+              <option value="Company">Company (top 20)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Axis Selection</h2>
+          <p class="hint">Any benchmark or Release Year as each axis. Points missing a value are excluded.</p>
+          <div class="control-group">
+            <label class="control-label" for="cx-axis-x">X Axis</label>
+            <select id="cx-axis-x"></select>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="cx-axis-y">Y Axis</label>
+            <select id="cx-axis-y"></select>
+          </div>
+          <div class="control-group" id="cx-axis-z-group" style="display:none">
+            <label class="control-label" for="cx-axis-z">Z Axis</label>
+            <select id="cx-axis-z"></select>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Filters</h2>
+          <div class="control-group">
+            <div class="list-header">
+              <label class="control-label">Origin</label>
+              <div class="list-actions">
+                <button class="btn-link" onclick="selectAll('cx-origin__',true)">All</button>
+                <span class="sep">·</span>
+                <button class="btn-link" onclick="selectAll('cx-origin__',false)">None</button>
+              </div>
+            </div>
+            <div id="cx-origin-list" class="checkbox-list"></div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Release Year</label>
+            <div class="range-row">
+              <select id="cx-year-min"></select>
+              <span class="range-sep">→</span>
+              <select id="cx-year-max"></select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="fetchAndRenderCustom()">Apply &amp; Recompute</button>
+      </aside>
+
+      <main>
+        <div class="stats-bar">
+          <div class="stat"><span class="stat-label">Models</span><span class="stat-value" id="cx-stat-count">—</span></div>
+          <div class="stat"><span class="stat-label">X Axis</span><span class="stat-value stat-value-sm" id="cx-stat-x">—</span></div>
+          <div class="stat"><span class="stat-label">Y Axis</span><span class="stat-value stat-value-sm" id="cx-stat-y">—</span></div>
+          <div class="stat" id="cx-stat-z-wrap" style="display:none"><span class="stat-label">Z Axis</span><span class="stat-value stat-value-sm" id="cx-stat-z">—</span></div>
+        </div>
+        <div class="chart-container">
+          <div class="loading-overlay hidden" id="custom-loading"><div class="spinner"></div><p>Loading…</p></div>
+          <div class="empty-state hidden" id="custom-empty"><p class="empty-msg" id="custom-empty-msg">No data.</p></div>
+          <div id="chart-custom" class="chart-div"></div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ══════════════════════════ CLASSIFY PAGE ══════════════════════════════ -->
+    <div class="page" id="page-classify">
+      <aside class="sidebar">
+
+        <div class="section">
+          <h2 class="section-title">Classifier</h2>
+          <div class="btn-group">
+            <button class="btn-toggle active" id="cls-btn-svm" onclick="setClassifier('svm')">SVM</button>
+            <button class="btn-toggle"        id="cls-btn-dt"  onclick="setClassifier('dt')">Decision Tree</button>
+            <button class="btn-toggle"        id="cls-btn-lr"  onclick="setClassifier('lr')">Log. Reg.</button>
+          </div>
+          <p class="hint cls-hint" id="cls-hint" style="margin-top:8px">SVM (RBF kernel). Feature importances not available.</p>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Target Class</h2>
+          <div class="control-group">
+            <label class="control-label" for="cls-target">Predict</label>
+            <select id="cls-target">
+              <option value="origin">Origin / Country</option>
+              <option value="company">Company</option>
+              <option value="release_year">Release Year</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Max Classes <span class="control-val" id="cls-top-n-val">8</span></label>
+            <input type="range" id="cls-top-n" min="2" max="20" value="8" step="1" />
+            <p class="hint" style="margin-top:4px">Top N classes kept; rarer classes are dropped.</p>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Test Split <span class="control-val" id="cls-test-size-val">25%</span></label>
+            <input type="range" id="cls-test-size" min="10" max="40" value="25" step="5" />
+          </div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Feature Benchmarks</h2>
+          <div class="list-header">
+            <span class="list-label">Primary</span>
+            <div class="list-actions">
+              <button class="btn-link" onclick="selectAll('cls-bench__',true)">All</button>
+              <span class="sep">·</span>
+              <button class="btn-link" onclick="selectAll('cls-bench__',false)">None</button>
+            </div>
+          </div>
+          <div id="cls-benchmark-list" class="checkbox-list"></div>
+          <button class="btn-link sparse-toggle" id="cls-toggle-sparse">
+            <span id="cls-sparse-icon">▶</span> Sparse benchmarks
+          </button>
+          <div id="cls-sparse-benchmarks" class="checkbox-list hidden"></div>
+        </div>
+
+        <div class="section">
+          <h2 class="section-title">Filters</h2>
+          <div class="control-group">
+            <div class="list-header">
+              <label class="control-label">Origin</label>
+              <div class="list-actions">
+                <button class="btn-link" onclick="selectAll('cls-origin__',true)">All</button>
+                <span class="sep">·</span>
+                <button class="btn-link" onclick="selectAll('cls-origin__',false)">None</button>
+              </div>
+            </div>
+            <div id="cls-origin-list" class="checkbox-list"></div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">Release Year</label>
+            <div class="range-row">
+              <select id="cls-year-min"></select>
+              <span class="range-sep">→</span>
+              <select id="cls-year-max"></select>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="fetchAndRenderClassify()">Train &amp; Evaluate</button>
+      </aside>
+
+      <main>
+        <div class="stats-bar">
+          <div class="stat"><span class="stat-label">Accuracy</span><span class="stat-value" id="cls-stat-acc">—</span></div>
+          <div class="stat"><span class="stat-label">Train N</span><span class="stat-value" id="cls-stat-train">—</span></div>
+          <div class="stat"><span class="stat-label">Test N</span><span class="stat-value" id="cls-stat-test">—</span></div>
+          <div class="stat"><span class="stat-label">Classes</span><span class="stat-value" id="cls-stat-classes">—</span></div>
+          <div class="stat"><span class="stat-label">Classifier</span><span class="stat-value stat-value-sm" id="cls-stat-clf">—</span></div>
+        </div>
+        <div class="chart-container">
+          <div class="loading-overlay hidden" id="classify-loading"><div class="spinner"></div><p>Training…</p></div>
+          <div class="empty-state" id="classify-empty"><p class="empty-msg" id="classify-empty-msg">Configure settings and click Train &amp; Evaluate.</p></div>
+          <div id="classify-results" class="classify-results hidden">
+            <div class="confmat-panel">
+              <div class="panel-title">Confusion Matrix <span class="panel-sub">(row-normalized, hover for counts)</span></div>
+              <div id="chart-confmat" class="classify-chart"></div>
+            </div>
+            <div class="importance-panel" id="importance-panel">
+              <div class="panel-title">Feature Importances</div>
+              <div id="chart-importance" class="classify-chart"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ══════════════════════════ BENCHMARKS INFO PAGE ═════════════════════════ -->
+    <div class="page" id="page-info">
+      <div class="info-page">
+        <div class="info-toolbar">
+          <input type="text" id="info-search" class="info-search" placeholder="Search benchmarks…" oninput="filterInfoCards()" />
+          <div class="info-area-filters" id="info-area-filters"></div>
+        </div>
+        <div id="info-cards" class="info-cards"></div>
+      </div>
+    </div>
+
+  </div><!-- #pages -->
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

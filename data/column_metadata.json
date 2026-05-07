@@ -1,0 +1,226 @@
+{
+  "$schema_note": "Metadata for columns produced by data/scraper.py -> llm_benchmarks.csv. test_areas use coarse categories for filtering and analysis.",
+  "test_area_vocab": {
+    "math": "Symbolic and numerical problem solving, competition-style and grade-school math.",
+    "coding": "Program synthesis, debugging, repository tasks, and developer-style workflows.",
+    "knowledge": "Broad factual and academic knowledge across domains (exam-style QA).",
+    "reasoning": "Multi-step logic, puzzles, and difficult reasoning beyond single facts.",
+    "science": "Graduate-level STEM understanding and scientific QA.",
+    "instruction_following": "Adherence to explicit constraints, formats, and policy in prompts.",
+    "safety": "Robustness to misuse, evasion, or policy-violating requests.",
+    "document_vision": "Text extraction and understanding from images or scanned documents (OCR).",
+    "chat_human_eval": "Crowdsourced preference or Elo from human side-by-side chat comparisons.",
+    "aggregate": "Composite score combining multiple benchmarks.",
+    "environment": "Resource or emissions estimate, not a capability score.",
+    "coverage": "How many official benchmark results are present for the model in OpenEvals."
+  },
+  "columns": {
+    "Model": {
+      "description": "Hugging Face model identifier (organization/repository name) used as the stable key across sources.",
+      "is_benchmark": false,
+      "test_areas": [],
+      "source": "merged (Open LLM Leaderboard fullname, OpenEvals model_name)",
+      "value_type": "string"
+    },
+    "Release Date": {
+      "description": "Approximate release or first upload date on the Hub when available; may be enriched from Hugging Face model metadata if --enrich-dates is used.",
+      "is_benchmark": false,
+      "test_areas": [],
+      "source": "Open LLM Leaderboard Upload To Hub Date and/or Hugging Face API",
+      "value_type": "date (ISO 8601)"
+    },
+    "Origin": {
+      "description": "Inferred country or region of the releasing organization, based on a static namespace map; empty when the org is unmapped. Not verified from legal entity or hosting location.",
+      "is_benchmark": false,
+      "test_areas": [],
+      "source": "heuristic (NAMESPACE_ORIGIN in scraper.py)",
+      "value_type": "string"
+    },
+    "oe_aggregate": {
+      "description": "OpenEvals composite score summarizing performance across the official benchmarks included in the OpenEvals leaderboard table.",
+      "is_benchmark": true,
+      "test_areas": ["aggregate"],
+      "source": "OpenEvals/leaderboard-data (Hugging Face)",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_aime2026": {
+      "description": "Score on AIME-style competition mathematics problems (2026 suite in OpenEvals naming).",
+      "is_benchmark": true,
+      "test_areas": ["math"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_coverage_count": {
+      "description": "Count of official benchmark results available for this model within the OpenEvals aggregation (coverage metadata, not a skill test).",
+      "is_benchmark": false,
+      "test_areas": ["coverage"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "integer"
+    },
+    "oe_coverage_percent": {
+      "description": "Percentage of tracked OpenEvals benchmarks for which this model has a submitted score.",
+      "is_benchmark": false,
+      "test_areas": ["coverage"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric"
+    },
+    "oe_evasionBench": {
+      "description": "EvasionBench evaluates resistance to circumventing safeguards or policy (jailbreak-style pressure).",
+      "is_benchmark": true,
+      "test_areas": ["safety"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_gpqa": {
+      "description": "GPQA: graduate-level multiple-choice questions in biology, physics, and chemistry (hard for non-experts).",
+      "is_benchmark": true,
+      "test_areas": ["science", "knowledge", "reasoning"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true,
+      "note": "Distinct from oll_GPQA: different pipeline/scale than Open LLM Leaderboard GPQA column."
+    },
+    "oe_gsm8k": {
+      "description": "GSM8K: grade-school math word problems requiring short chain-of-thought style reasoning.",
+      "is_benchmark": true,
+      "test_areas": ["math", "reasoning"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_hle": {
+      "description": "Humanity's Last Exam (HLE): very difficult cross-domain questions aimed at frontier models.",
+      "is_benchmark": true,
+      "test_areas": ["reasoning", "knowledge", "science"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_hmmt2026": {
+      "description": "HMMT-style mathematics competition problems (2026 naming in OpenEvals).",
+      "is_benchmark": true,
+      "test_areas": ["math"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_mmlu_pro": {
+      "description": "MMLU-Pro: harder, less noisy variant of broad multi-task knowledge evaluation.",
+      "is_benchmark": true,
+      "test_areas": ["knowledge", "reasoning"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true,
+      "note": "Related but not identical to oll_MMLU_PRO (different suite/version context)."
+    },
+    "oe_olmOcr": {
+      "description": "olmOCR-focused metric: OCR and text recovery from document images in the OpenEvals table.",
+      "is_benchmark": true,
+      "test_areas": ["document_vision"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_swePro": {
+      "description": "SWE-bench Pro variant: harder software-engineering repair tasks in repositories.",
+      "is_benchmark": true,
+      "test_areas": ["coding"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_sweVerified": {
+      "description": "SWE-bench Verified: subset of SWE-bench with independently verified issue resolutions.",
+      "is_benchmark": true,
+      "test_areas": ["coding"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oe_terminalBench": {
+      "description": "TerminalBench: tasks involving shell/terminal interaction and command-line problem solving.",
+      "is_benchmark": true,
+      "test_areas": ["coding", "reasoning"],
+      "source": "OpenEvals/leaderboard-data",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oll_BBH": {
+      "description": "BIG-Bench Hard (BBH): challenging subset of BIG-Bench requiring multi-step reasoning.",
+      "is_benchmark": true,
+      "test_areas": ["reasoning", "knowledge"],
+      "source": "Open LLM Leaderboard (Hugging Face)",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oll_CO2_kg": {
+      "description": "Estimated CO2 emissions (kg) associated with evaluation runs as reported on the Open LLM Leaderboard; reflects compute footprint, not model accuracy.",
+      "is_benchmark": false,
+      "test_areas": ["environment"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": false
+    },
+    "oll_GPQA": {
+      "description": "GPQA scores as computed in the Open LLM Leaderboard harness (normalized/scaled for that leaderboard).",
+      "is_benchmark": true,
+      "test_areas": ["science", "knowledge", "reasoning"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": true,
+      "note": "Not directly comparable to oe_gpqa without checking leaderboard methodology."
+    },
+    "oll_IFEval": {
+      "description": "IFEval: instruction-following evaluation with verifiable constraints (format, counts, keywords).",
+      "is_benchmark": true,
+      "test_areas": ["instruction_following"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oll_MATH_lvl5": {
+      "description": "MATH benchmark level-5 difficulty problems (competition-style math in the OLL suite).",
+      "is_benchmark": true,
+      "test_areas": ["math", "reasoning"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oll_MMLU_PRO": {
+      "description": "MMLU-Pro scores in the Open LLM Leaderboard evaluation setup.",
+      "is_benchmark": true,
+      "test_areas": ["knowledge", "reasoning"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oll_MUSR": {
+      "description": "MUSR: multi-step reasoning tasks often involving longer contexts or structured problems.",
+      "is_benchmark": true,
+      "test_areas": ["reasoning"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "oll_average": {
+      "description": "Open LLM Leaderboard aggregate average across the benchmarks included in that leaderboard snapshot.",
+      "is_benchmark": true,
+      "test_areas": ["aggregate"],
+      "source": "Open LLM Leaderboard",
+      "value_type": "numeric",
+      "higher_is_better": true
+    },
+    "arena_text_elo": {
+      "description": "Chatbot Arena text leaderboard Elo (human pairwise votes), merged via slug heuristic when --arena is used; many models will be empty if no match.",
+      "is_benchmark": true,
+      "test_areas": ["chat_human_eval"],
+      "source": "LMSYS-style Arena data via public mirror API (see scraper.py)",
+      "value_type": "numeric",
+      "higher_is_better": true,
+      "note": "Reflects perceived helpfulness/style in open-ended chat, not a fixed dataset accuracy."
+    }
+  }
+}
