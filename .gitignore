@@ -1,0 +1,10 @@
+__pycache__/
+_site/
+.quarto/
+index_files/
+index.html
+precomputed/
+*.pyc
+
+/.quarto/
+**/*.quarto_ipynb
