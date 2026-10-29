@@ -2,6 +2,39 @@ project:
   type: website
   render:
     - index.qmd
+    - about-data.qmd
+    - essay.qmd
 
 website:
-  title: "Cluster & Culture"
+  title: "Mapping the Cultural Fingerprints of LLMs"
+  navbar:
+    left:
+      - text: "Visualizations"
+        href: index.qmd
+      - text: "About the Data"
+        href: about-data.qmd
+      - text: "Essay"
+        href: essay.qmd
+
+  sidebar:
+    - title: "Visualizations"
+      style: docked
+      contents:
+        - section: "Open LLM / ECI"
+          contents:
+            - text: "All Visualizations"
+              href: index.qmd
+        - section: "Background"
+          contents:
+            - text: "About the Data"
+              href: about-data.qmd
+            - text: "Essay"
+              href: essay.qmd
+
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 3
+    echo: false
+    code-tools: false

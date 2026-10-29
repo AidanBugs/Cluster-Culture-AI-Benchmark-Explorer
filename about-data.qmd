@@ -1,0 +1,21 @@
+---
+title: "About the Data"
+subtitle: "Sources, methodology, and benchmark descriptions"
+title-block-banner: true
+---
+
+## Data Sources
+
+*Add content here about where the data comes from.*
+
+## HuggingFace Open LLM Leaderboard
+
+*Describe the Open LLM Leaderboard benchmarks: IFEval, BBH, MATH Lvl 5, GPQA, MUSR, MMLU-PRO.*
+
+## ECI (Epoch Composite Index)
+
+*Describe the ECI dataset, benchmark selection methodology, and coverage.*
+
+## Methodology
+
+*Describe PCA, UMAP, classifier approach, etc.*
