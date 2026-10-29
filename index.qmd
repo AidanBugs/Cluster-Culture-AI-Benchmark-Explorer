@@ -5,11 +5,15 @@ format:
     toc: true
     toc-depth: 3
     theme: flatly
+    echo: false
+    code-tools: false
+execute:
+  echo: false
 ---
 
 ```{ojs}
 //| echo: false
-Plotly = require("plotly.js-dist-min")
+Plotly = require("https://cdn.plot.ly/plotly-2.35.2.min.js")
 ```
 
 ```{ojs}
@@ -41,7 +45,7 @@ data = dataset === "hf" ? hf_data : eci_data
 {
   const d = data.pca_2d;
   const colorField = data.color_fields[0];
-  const groups = d3.group(d.points, p => p[colorField] ?? "Unknown");
+  const groups = d3.group(d.points, p => (p[colorField] != null ? p[colorField] : "Unknown"));
   const traces = Array.from(groups, ([name, pts]) => ({
     x: pts.map(p => p.PC1),
     y: pts.map(p => p.PC2),
@@ -58,7 +62,7 @@ data = dataset === "hf" ? hf_data : eci_data
     title: `PCA 2D — ${data.name}<br><sub>PC1 ${(d.variance[0]*100).toFixed(1)}% var · PC2 ${(d.variance[1]*100).toFixed(1)}% var</sub>`,
     xaxis: {title: `PC1 (${(d.variance[0]*100).toFixed(1)}%)`},
     yaxis: {title: `PC2 (${(d.variance[1]*100).toFixed(1)}%)`},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -72,7 +76,7 @@ data = dataset === "hf" ? hf_data : eci_data
 {
   const d = data.pca_3d;
   const colorField = data.color_fields[0];
-  const groups = d3.group(d.points, p => p[colorField] ?? "Unknown");
+  const groups = d3.group(d.points, p => (p[colorField] != null ? p[colorField] : "Unknown"));
   const traces = Array.from(groups, ([name, pts]) => ({
     x: pts.map(p => p.PC1),
     y: pts.map(p => p.PC2),
@@ -93,7 +97,7 @@ data = dataset === "hf" ? hf_data : eci_data
       yaxis: {title: `PC2 (${(d.variance[1]*100).toFixed(1)}%)`},
       zaxis: {title: `PC3 (${(d.variance[2]*100).toFixed(1)}%)`},
     },
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -118,7 +122,7 @@ data = dataset === "hf" ? hf_data : eci_data
     barmode: "group",
     title: `PCA Loadings — ${data.name}`,
     xaxis: {tickangle: -30},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
     shapes: [{type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
               line: {color: "black", width: 0.5}}],
@@ -148,7 +152,7 @@ data = dataset === "hf" ? hf_data : eci_data
     title: `PCA Loadings Heatmap — ${data.name}`,
     xaxis: {title: "Benchmark", tickangle: -30},
     yaxis: {title: "Principal Component"},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -162,7 +166,7 @@ data = dataset === "hf" ? hf_data : eci_data
 {
   const d = data.umap_2d;
   const colorField = data.color_fields[0];
-  const groups = d3.group(d.points, p => p[colorField] ?? "Unknown");
+  const groups = d3.group(d.points, p => (p[colorField] != null ? p[colorField] : "Unknown"));
   const traces = Array.from(groups, ([name, pts]) => ({
     x: pts.map(p => p.UMAP1),
     y: pts.map(p => p.UMAP2),
@@ -179,7 +183,7 @@ data = dataset === "hf" ? hf_data : eci_data
     title: `UMAP 2D — ${data.name}<br><sub>n_neighbors=${d.n_neighbors}, min_dist=${d.min_dist}</sub>`,
     xaxis: {title: "UMAP1"},
     yaxis: {title: "UMAP2"},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -205,7 +209,7 @@ data = dataset === "hf" ? hf_data : eci_data
     title: `UMAP Dimension Correlation — Spearman r — ${data.name}`,
     yaxis: {range: [-1, 1], title: "Spearman r"},
     xaxis: {tickangle: -30},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
     shapes: [{type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
               line: {color: "black", width: 0.5}}],
@@ -236,7 +240,7 @@ data = dataset === "hf" ? hf_data : eci_data
     title: `UMAP Correlation Heatmap — ${data.name}`,
     xaxis: {title: "Benchmark", tickangle: -30},
     yaxis: {title: "UMAP Dimension"},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -275,7 +279,7 @@ viewof scatter_color = Inputs.select(data.color_fields, {
   const pts = data.scatter_data.points.filter(
     p => p[scatter_x] != null && p[scatter_y] != null
   );
-  const groups = d3.group(pts, p => String(p[scatter_color] ?? "Unknown"));
+  const groups = d3.group(pts, p => String(p[scatter_color] != null ? p[scatter_color] : "Unknown"));
   const traces = Array.from(groups, ([name, points]) => ({
     x: points.map(p => p[scatter_x]),
     y: points.map(p => p[scatter_y]),
@@ -294,7 +298,7 @@ viewof scatter_color = Inputs.select(data.color_fields, {
     title: `${scatter_y} vs ${scatter_x}<br><sub>${n} models</sub>`,
     xaxis: {title: scatter_x},
     yaxis: {title: scatter_y},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -330,7 +334,7 @@ viewof clf_origins = Inputs.select(
 ```{ojs}
 //| echo: false
 clf_key = `${clf_type}|${clf_target}|${clf_origins}`
-clf_result = data.classifier_results[clf_key] ?? null
+clf_result = data.classifier_results[clf_key] || null
 ```
 
 ### Confusion Matrix
@@ -364,7 +368,7 @@ clf_result = data.classifier_results[clf_key] ?? null
     title: `Confusion Matrix — ${d.clf_name} predicting ${d.target_label}<br><sub>Accuracy: ${(d.accuracy*100).toFixed(1)}% · ${d.n_test} test samples · Origins: ${d.origin_label}</sub>`,
     xaxis: {title: "Predicted"},
     yaxis: {title: "True", autorange: "reversed"},
-    width: 900, height: 720,
+    width: width, height: Math.round(width * 0.8),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
@@ -398,7 +402,7 @@ clf_result = data.classifier_results[clf_key] ?? null
     title: `ROC Curve — ${d.clf_name} predicting ${d.target_label}<br><sub>Macro AUC: ${d.macro_auc.toFixed(3)}</sub>`,
     xaxis: {title: "False Positive Rate", constrain: "domain", scaleanchor: "y"},
     yaxis: {title: "True Positive Rate", constrain: "domain"},
-    width: 800, height: 800,
+    width: Math.min(width, 800), height: Math.min(width, 800),
     paper_bgcolor: "white", plot_bgcolor: "white",
     legend: {x: 0.6, y: 0.05},
   }, {responsive: true});
@@ -428,7 +432,7 @@ clf_result = data.classifier_results[clf_key] ?? null
   Plotly.newPlot(div, traces, {
     title: `Feature Importances — ${d.clf_name}`,
     xaxis: {title: "Importance"},
-    width: 1280, height: 720,
+    width: width, height: Math.round(width * 0.56),
     paper_bgcolor: "white", plot_bgcolor: "white",
   }, {responsive: true});
   return div;
