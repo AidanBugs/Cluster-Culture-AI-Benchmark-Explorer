@@ -1,0 +1,436 @@
+---
+title: "Cluster & Culture — LLM Benchmark Visualizations"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    theme: flatly
+---
+
+```{ojs}
+//| echo: false
+Plotly = require("plotly.js-dist-min")
+```
+
+```{ojs}
+//| echo: false
+hf_data = FileAttachment("precomputed/hf.json").json()
+eci_data = FileAttachment("precomputed/eci.json").json()
+```
+
+```{ojs}
+//| echo: false
+viewof dataset = Inputs.select(
+  new Map([
+    ["Open LLM Leaderboard", "hf"],
+    ["ECI (Epoch Composite Index)", "eci"]
+  ]),
+  {label: "Dataset", value: "hf"}
+)
+```
+
+```{ojs}
+//| echo: false
+data = dataset === "hf" ? hf_data : eci_data
+```
+
+## PCA — 2D
+
+```{ojs}
+//| echo: false
+{
+  const d = data.pca_2d;
+  const colorField = data.color_fields[0];
+  const groups = d3.group(d.points, p => p[colorField] ?? "Unknown");
+  const traces = Array.from(groups, ([name, pts]) => ({
+    x: pts.map(p => p.PC1),
+    y: pts.map(p => p.PC2),
+    text: pts.map(p => p.Model),
+    mode: "markers",
+    type: "scatter",
+    name: String(name),
+    marker: {size: 8, opacity: 0.85},
+    hovertemplate: "%{text}<br>PC1: %{x:.3f}<br>PC2: %{y:.3f}<extra>%{fullData.name}</extra>",
+  }));
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `PCA 2D — ${data.name}<br><sub>PC1 ${(d.variance[0]*100).toFixed(1)}% var · PC2 ${(d.variance[1]*100).toFixed(1)}% var</sub>`,
+    xaxis: {title: `PC1 (${(d.variance[0]*100).toFixed(1)}%)`},
+    yaxis: {title: `PC2 (${(d.variance[1]*100).toFixed(1)}%)`},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+## PCA — 3D
+
+```{ojs}
+//| echo: false
+{
+  const d = data.pca_3d;
+  const colorField = data.color_fields[0];
+  const groups = d3.group(d.points, p => p[colorField] ?? "Unknown");
+  const traces = Array.from(groups, ([name, pts]) => ({
+    x: pts.map(p => p.PC1),
+    y: pts.map(p => p.PC2),
+    z: pts.map(p => p.PC3),
+    text: pts.map(p => p.Model),
+    mode: "markers",
+    type: "scatter3d",
+    name: String(name),
+    marker: {size: 5, opacity: 0.85},
+    hovertemplate: "%{text}<extra>%{fullData.name}</extra>",
+  }));
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `PCA 3D — ${data.name}`,
+    scene: {
+      xaxis: {title: `PC1 (${(d.variance[0]*100).toFixed(1)}%)`},
+      yaxis: {title: `PC2 (${(d.variance[1]*100).toFixed(1)}%)`},
+      zaxis: {title: `PC3 (${(d.variance[2]*100).toFixed(1)}%)`},
+    },
+    width: 1280, height: 720,
+    paper_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+## PCA — Loadings
+
+```{ojs}
+//| echo: false
+{
+  const d = data.pca_loadings;
+  const traces = d.components.map((comp, i) => ({
+    x: d.benchmarks,
+    y: d.matrix[i],
+    name: comp,
+    type: "bar",
+  }));
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    barmode: "group",
+    title: `PCA Loadings — ${data.name}`,
+    xaxis: {tickangle: -30},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+    shapes: [{type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
+              line: {color: "black", width: 0.5}}],
+  }, {responsive: true});
+  return div;
+}
+```
+
+```{ojs}
+//| echo: false
+{
+  const d = data.pca_loadings;
+  const traces = [{
+    z: d.matrix,
+    x: d.benchmarks,
+    y: d.components,
+    type: "heatmap",
+    colorscale: "RdBu",
+    zmid: 0,
+    text: d.matrix.map(row => row.map(v => v.toFixed(3))),
+    texttemplate: "%{text}",
+    hovertemplate: "Benchmark: %{x}<br>Component: %{y}<br>Loading: %{z:.3f}<extra></extra>",
+  }];
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `PCA Loadings Heatmap — ${data.name}`,
+    xaxis: {title: "Benchmark", tickangle: -30},
+    yaxis: {title: "Principal Component"},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+## UMAP — 2D
+
+```{ojs}
+//| echo: false
+{
+  const d = data.umap_2d;
+  const colorField = data.color_fields[0];
+  const groups = d3.group(d.points, p => p[colorField] ?? "Unknown");
+  const traces = Array.from(groups, ([name, pts]) => ({
+    x: pts.map(p => p.UMAP1),
+    y: pts.map(p => p.UMAP2),
+    text: pts.map(p => p.Model),
+    mode: "markers",
+    type: "scatter",
+    name: String(name),
+    marker: {size: 8, opacity: 0.85},
+    hovertemplate: "%{text}<br>UMAP1: %{x:.2f}<br>UMAP2: %{y:.2f}<extra>%{fullData.name}</extra>",
+  }));
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `UMAP 2D — ${data.name}<br><sub>n_neighbors=${d.n_neighbors}, min_dist=${d.min_dist}</sub>`,
+    xaxis: {title: "UMAP1"},
+    yaxis: {title: "UMAP2"},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+## UMAP — Dimension Correlation
+
+```{ojs}
+//| echo: false
+{
+  const d = data.umap_correlations;
+  const traces = ["UMAP1", "UMAP2"].map(dim => ({
+    x: d.benchmarks,
+    y: d[dim],
+    name: dim,
+    type: "bar",
+  }));
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    barmode: "group",
+    title: `UMAP Dimension Correlation — Spearman r — ${data.name}`,
+    yaxis: {range: [-1, 1], title: "Spearman r"},
+    xaxis: {tickangle: -30},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+    shapes: [{type: "line", x0: 0, x1: 1, xref: "paper", y0: 0, y1: 0,
+              line: {color: "black", width: 0.5}}],
+  }, {responsive: true});
+  return div;
+}
+```
+
+```{ojs}
+//| echo: false
+{
+  const d = data.umap_correlations;
+  const z = ["UMAP1", "UMAP2"].map(dim => d[dim]);
+  const traces = [{
+    z: z,
+    x: d.benchmarks,
+    y: ["UMAP1", "UMAP2"],
+    type: "heatmap",
+    colorscale: "RdBu",
+    zmid: 0, zmin: -1, zmax: 1,
+    text: z.map(row => row.map(v => String(v))),
+    texttemplate: "%{text}",
+    hovertemplate: "Benchmark: %{x}<br>Dimension: %{y}<br>Spearman r: %{z:.3f}<extra></extra>",
+  }];
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `UMAP Correlation Heatmap — ${data.name}`,
+    xaxis: {title: "Benchmark", tickangle: -30},
+    yaxis: {title: "UMAP Dimension"},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+## Custom-Axis Scatter
+
+```{ojs}
+//| echo: false
+viewof scatter_x = Inputs.select(data.benchmarks, {
+  label: "X Axis",
+  value: data.benchmarks[0],
+})
+```
+
+```{ojs}
+//| echo: false
+viewof scatter_y = Inputs.select(data.benchmarks, {
+  label: "Y Axis",
+  value: data.benchmarks.length > 1 ? data.benchmarks[1] : data.benchmarks[0],
+})
+```
+
+```{ojs}
+//| echo: false
+viewof scatter_color = Inputs.select(data.color_fields, {
+  label: "Color By",
+  value: data.color_fields[0],
+})
+```
+
+```{ojs}
+//| echo: false
+{
+  const pts = data.scatter_data.points.filter(
+    p => p[scatter_x] != null && p[scatter_y] != null
+  );
+  const groups = d3.group(pts, p => String(p[scatter_color] ?? "Unknown"));
+  const traces = Array.from(groups, ([name, points]) => ({
+    x: points.map(p => p[scatter_x]),
+    y: points.map(p => p[scatter_y]),
+    text: points.map(p => p.Model),
+    mode: "markers",
+    type: "scatter",
+    name,
+    marker: {size: 9, opacity: 0.8},
+    hovertemplate:
+      `%{text}<br>${scatter_x}: %{x:.3f}<br>${scatter_y}: %{y:.3f}<extra>%{fullData.name}</extra>`,
+  }));
+
+  const n = pts.length;
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `${scatter_y} vs ${scatter_x}<br><sub>${n} models</sub>`,
+    xaxis: {title: scatter_x},
+    yaxis: {title: scatter_y},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+## Classifier
+
+```{ojs}
+//| echo: false
+viewof clf_type = Inputs.select(
+  new Map([["SVM (RBF)", "svm"], ["Decision Tree", "dt"], ["Logistic Regression", "lr"]]),
+  {label: "Classifier", value: "svm"}
+)
+```
+
+```{ojs}
+//| echo: false
+viewof clf_target = Inputs.select(
+  new Map(Object.entries(data.classifier_targets).map(([k, v]) => [v.label, k])),
+  {label: "Target"}
+)
+```
+
+```{ojs}
+//| echo: false
+viewof clf_origins = Inputs.select(
+  new Map(Object.entries(data.classifier_origin_filters).map(([k, v]) => [v.label, k])),
+  {label: "Origin Filter"}
+)
+```
+
+```{ojs}
+//| echo: false
+clf_key = `${clf_type}|${clf_target}|${clf_origins}`
+clf_result = data.classifier_results[clf_key] ?? null
+```
+
+### Confusion Matrix
+
+```{ojs}
+//| echo: false
+{
+  if (!clf_result)
+    return html`<p style="color:#888"><em>Not enough data for this combination.</em></p>`;
+
+  const d = clf_result;
+  const cm_norm = d.cm.map(row => {
+    const s = row.reduce((a, b) => a + b, 0) || 1;
+    return row.map(v => v / s);
+  });
+
+  const traces = [{
+    z: cm_norm,
+    x: d.labels,
+    y: d.labels,
+    type: "heatmap",
+    colorscale: "Blues",
+    zmin: 0, zmax: 1,
+    text: d.cm,
+    texttemplate: "%{text}",
+    hovertemplate: "True: %{y}<br>Pred: %{x}<br>Count: %{text}<br>Rate: %{z:.1%}<extra></extra>",
+  }];
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `Confusion Matrix — ${d.clf_name} predicting ${d.target_label}<br><sub>Accuracy: ${(d.accuracy*100).toFixed(1)}% · ${d.n_test} test samples · Origins: ${d.origin_label}</sub>`,
+    xaxis: {title: "Predicted"},
+    yaxis: {title: "True", autorange: "reversed"},
+    width: 900, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
+
+### ROC Curve
+
+```{ojs}
+//| echo: false
+{
+  if (!clf_result) return html``;
+
+  const d = clf_result;
+  const traces = Object.values(d.roc).map(r => ({
+    x: r.fpr,
+    y: r.tpr,
+    mode: "lines",
+    name: `${r.label} (AUC=${r.auc.toFixed(3)})`,
+  }));
+
+  traces.push({
+    x: [0, 1], y: [0, 1],
+    mode: "lines",
+    line: {dash: "dash", color: "gray"},
+    name: "Random (AUC=0.500)",
+  });
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `ROC Curve — ${d.clf_name} predicting ${d.target_label}<br><sub>Macro AUC: ${d.macro_auc.toFixed(3)}</sub>`,
+    xaxis: {title: "False Positive Rate", constrain: "domain", scaleanchor: "y"},
+    yaxis: {title: "True Positive Rate", constrain: "domain"},
+    width: 800, height: 800,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+    legend: {x: 0.6, y: 0.05},
+  }, {responsive: true});
+  return div;
+}
+```
+
+### Feature Importances
+
+```{ojs}
+//| echo: false
+{
+  if (!clf_result || !clf_result.importances)
+    return html`<p style="color:#888"><em>No feature importances for this classifier (SVM has none natively).</em></p>`;
+
+  const d = clf_result;
+  const entries = Object.entries(d.importances).sort((a, b) => a[1] - b[1]);
+
+  const traces = [{
+    y: entries.map(e => e[0]),
+    x: entries.map(e => e[1]),
+    type: "bar",
+    orientation: "h",
+  }];
+
+  const div = document.createElement("div");
+  Plotly.newPlot(div, traces, {
+    title: `Feature Importances — ${d.clf_name}`,
+    xaxis: {title: "Importance"},
+    width: 1280, height: 720,
+    paper_bgcolor: "white", plot_bgcolor: "white",
+  }, {responsive: true});
+  return div;
+}
+```
