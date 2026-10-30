@@ -17,7 +17,36 @@ eci_data = FileAttachment("precomputed/eci.json").json()
 
 ```{ojs}
 //| echo: false
-viewof dataset = Inputs.select(
+markerSize = Math.max(4, Math.round(width / 160))
+markerSize3d = Math.max(3, Math.round(width / 256))
+markerSizeScatter = Math.max(5, Math.round(width / 142))
+```
+
+```{=html}
+<style>
+  html, body { overscroll-behavior: none; }
+  .quarto-title-banner { margin-top: 0 !important; padding-top: 1.5rem; }
+  #title-block-header { margin-block-end: 0; }
+  .ojs-input { margin-bottom: 0.5rem; }
+  .ojs-input label { font-weight: 600; font-size: 0.9rem; }
+  .ojs-input input[type="radio"] { accent-color: #2c3e50; }
+  .controls-row { display: flex; flex-wrap: wrap; gap: 1rem 2rem; align-items: flex-start; }
+  .controls-row .cell { flex: 1; min-width: 0; }
+  .controls-row select {
+    width: 100%;
+    max-width: 220px;
+    padding: 0.35rem 0.6rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.85rem;
+    accent-color: #2c3e50;
+  }
+</style>
+```
+
+```{ojs}
+//| echo: false
+viewof dataset = Inputs.radio(
   new Map([
     ["Open LLM Leaderboard", "hf"],
     ["ECI (Epoch Composite Index)", "eci"]
@@ -46,7 +75,7 @@ data = dataset === "hf" ? hf_data : eci_data
     mode: "markers",
     type: "scatter",
     name: String(name),
-    marker: {size: 8, opacity: 0.85},
+    marker: {size: markerSize, opacity: 0.85},
     hovertemplate: "%{text}<br>PC1: %{x:.3f}<br>PC2: %{y:.3f}<extra>%{fullData.name}</extra>",
   }));
 
@@ -78,7 +107,7 @@ data = dataset === "hf" ? hf_data : eci_data
     mode: "markers",
     type: "scatter3d",
     name: String(name),
-    marker: {size: 5, opacity: 0.85},
+    marker: {size: markerSize3d, opacity: 0.85},
     hovertemplate: "%{text}<extra>%{fullData.name}</extra>",
   }));
 
@@ -167,7 +196,7 @@ data = dataset === "hf" ? hf_data : eci_data
     mode: "markers",
     type: "scatter",
     name: String(name),
-    marker: {size: 8, opacity: 0.85},
+    marker: {size: markerSize, opacity: 0.85},
     hovertemplate: "%{text}<br>UMAP1: %{x:.2f}<br>UMAP2: %{y:.2f}<extra>%{fullData.name}</extra>",
   }));
 
@@ -242,6 +271,8 @@ data = dataset === "hf" ? hf_data : eci_data
 
 ## Custom-Axis Scatter
 
+::: {.controls-row}
+
 ```{ojs}
 //| echo: false
 viewof scatter_x = Inputs.select(data.benchmarks, {
@@ -266,6 +297,8 @@ viewof scatter_color = Inputs.select(data.color_fields, {
 })
 ```
 
+:::
+
 ```{ojs}
 //| echo: false
 {
@@ -280,7 +313,7 @@ viewof scatter_color = Inputs.select(data.color_fields, {
     mode: "markers",
     type: "scatter",
     name,
-    marker: {size: 9, opacity: 0.8},
+    marker: {size: markerSizeScatter, opacity: 0.8},
     hovertemplate:
       `%{text}<br>${scatter_x}: %{x:.3f}<br>${scatter_y}: %{y:.3f}<extra>%{fullData.name}</extra>`,
   }));
@@ -300,34 +333,43 @@ viewof scatter_color = Inputs.select(data.color_fields, {
 
 ## Classifier
 
+::: {.controls-row}
+
 ```{ojs}
 //| echo: false
-viewof clf_type = Inputs.select(
-  new Map([["SVM (RBF)", "svm"], ["Decision Tree", "dt"], ["Logistic Regression", "lr"]]),
-  {label: "Classifier", value: "svm"}
-)
+viewof clf_type = Inputs.select(["svm", "dt", "lr"], {
+  label: "Classifier",
+  format: x => ({"svm": "SVM (RBF)", "dt": "Decision Tree", "lr": "Logistic Regression"})[x],
+  value: "svm"
+})
 ```
 
 ```{ojs}
 //| echo: false
-viewof clf_target = Inputs.select(
-  new Map(Object.entries(data.classifier_targets).map(([k, v]) => [v.label, k])),
-  {label: "Target"}
-)
+clf_target_keys = Object.keys(data.classifier_targets)
+viewof clf_target = Inputs.select(clf_target_keys, {
+  label: "Target",
+  format: x => data.classifier_targets[x].label,
+  value: clf_target_keys[0]
+})
 ```
 
 ```{ojs}
 //| echo: false
-viewof clf_origins = Inputs.select(
-  new Map(Object.entries(data.classifier_origin_filters).map(([k, v]) => [v.label, k])),
-  {label: "Origin Filter"}
-)
+clf_origin_keys = Object.keys(data.classifier_origin_filters)
+viewof clf_origins = Inputs.select(clf_origin_keys, {
+  label: "Origin Filter",
+  format: x => data.classifier_origin_filters[x].label,
+  value: clf_origin_keys[0]
+})
 ```
+
+:::
 
 ```{ojs}
 //| echo: false
 clf_key = `${clf_type}|${clf_target}|${clf_origins}`
-clf_result = data.classifier_results[clf_key] || null
+clf_result = data.classifier_results.hasOwnProperty(clf_key) ? data.classifier_results[clf_key] : null
 ```
 
 ### Confusion Matrix
@@ -349,7 +391,7 @@ clf_result = data.classifier_results[clf_key] || null
     x: d.labels,
     y: d.labels,
     type: "heatmap",
-    colorscale: "Blues",
+    colorscale: [[0, "#e0e0e0"], [0.5, "#6baed6"], [1, "#08519c"]],
     zmin: 0, zmax: 1,
     text: d.cm,
     texttemplate: "%{text}",
