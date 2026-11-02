@@ -86,7 +86,7 @@ def compute_pca(df, benchmarks, dims=2, min_coverage=0.5):
 
     points = []
     for i, (_, row) in enumerate(df.iterrows()):
-        p = make_point(row)
+        p = make_point(row, extra_cols=selected)
         p["PC1"] = float(coords[i, 0])
         p["PC2"] = float(coords[i, 1])
         if dims >= 3 and n_comp >= 3:

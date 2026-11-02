@@ -60,6 +60,14 @@ viewof dataset = Inputs.radio(
 data = dataset === "hf" ? hf_data : eci_data
 ```
 
+```{ojs}
+//| echo: false
+scoreHover = p => [
+  p.Model,
+  ...data.benchmarks.map(b => `${b}: ${p[b] != null ? p[b].toFixed(3) : "n/a"}`),
+].join("<br>")
+```
+
 ## PCA — 2D
 
 ```{ojs}
@@ -71,12 +79,12 @@ data = dataset === "hf" ? hf_data : eci_data
   const traces = Array.from(groups, ([name, pts]) => ({
     x: pts.map(p => p.PC1),
     y: pts.map(p => p.PC2),
-    text: pts.map(p => p.Model),
+    text: pts.map(scoreHover),
     mode: "markers",
     type: "scatter",
     name: String(name),
     marker: {size: markerSize, opacity: 0.85},
-    hovertemplate: "%{text}<br>PC1: %{x:.3f}<br>PC2: %{y:.3f}<extra>%{fullData.name}</extra>",
+    hovertemplate: "%{text}<extra>%{fullData.name}</extra>",
   }));
 
   const div = document.createElement("div");
@@ -103,7 +111,7 @@ data = dataset === "hf" ? hf_data : eci_data
     x: pts.map(p => p.PC1),
     y: pts.map(p => p.PC2),
     z: pts.map(p => p.PC3),
-    text: pts.map(p => p.Model),
+    text: pts.map(scoreHover),
     mode: "markers",
     type: "scatter3d",
     name: String(name),
@@ -192,12 +200,12 @@ data = dataset === "hf" ? hf_data : eci_data
   const traces = Array.from(groups, ([name, pts]) => ({
     x: pts.map(p => p.UMAP1),
     y: pts.map(p => p.UMAP2),
-    text: pts.map(p => p.Model),
+    text: pts.map(scoreHover),
     mode: "markers",
     type: "scatter",
     name: String(name),
     marker: {size: markerSize, opacity: 0.85},
-    hovertemplate: "%{text}<br>UMAP1: %{x:.2f}<br>UMAP2: %{y:.2f}<extra>%{fullData.name}</extra>",
+    hovertemplate: "%{text}<extra>%{fullData.name}</extra>",
   }));
 
   const div = document.createElement("div");
