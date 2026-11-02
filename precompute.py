@@ -197,7 +197,7 @@ def compute_classifier(df, benchmarks, classifier, target_col, target_label,
     X = df[benchmarks].values.astype(float)
     X = SimpleImputer(strategy="mean").fit_transform(X)
     X = StandardScaler().fit_transform(X)
-    y = y_raw.values
+    y = y_raw.to_numpy(dtype=object)
     labels = sorted(y_raw.unique().tolist())
 
     try:
@@ -306,18 +306,15 @@ def precompute_hf():
             for orig_key, (orig_list, orig_label) in origin_filters.items():
                 key = f"{clf_key}|{tgt_key}|{orig_key}"
                 print(f"    {key}...", end=" ")
-                try:
-                    result = compute_classifier(
-                        df, benchmarks, clf_key, tgt_col, tgt_label,
-                        orig_list, orig_label,
-                    )
-                    if result:
-                        clf_results[key] = result
-                        print(f"acc={result['accuracy']:.1%}")
-                    else:
-                        print("SKIPPED (insufficient data)")
-                except Exception as e:
-                    print(f"SKIPPED ({e})")
+                result = compute_classifier(
+                    df, benchmarks, clf_key, tgt_col, tgt_label,
+                    orig_list, orig_label,
+                )
+                if result:
+                    clf_results[key] = result
+                    print(f"acc={result['accuracy']:.1%}")
+                else:
+                    print("SKIPPED (insufficient data)")
 
     return {
         "name": "Open LLM Leaderboard",
@@ -400,18 +397,15 @@ def precompute_eci():
             for orig_key, (orig_list, orig_label) in origin_filters.items():
                 key = f"{clf_key}|{tgt_key}|{orig_key}"
                 print(f"    {key}...", end=" ")
-                try:
-                    result = compute_classifier(
-                        df, benchmarks, clf_key, tgt_col, tgt_label,
-                        orig_list, orig_label, min_coverage=0,
-                    )
-                    if result:
-                        clf_results[key] = result
-                        print(f"acc={result['accuracy']:.1%}")
-                    else:
-                        print("SKIPPED (insufficient data)")
-                except Exception as e:
-                    print(f"SKIPPED ({e})")
+                result = compute_classifier(
+                    df, benchmarks, clf_key, tgt_col, tgt_label,
+                    orig_list, orig_label, min_coverage=0,
+                )
+                if result:
+                    clf_results[key] = result
+                    print(f"acc={result['accuracy']:.1%}")
+                else:
+                    print("SKIPPED (insufficient data)")
 
     return {
         "name": "ECI (Epoch Composite Index)",
