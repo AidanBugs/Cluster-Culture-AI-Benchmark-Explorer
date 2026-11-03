@@ -6,15 +6,27 @@ title-block-banner: true
 
 ## Data Sources
 
-*Add content here about where the data comes from.*
+[https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard?__theme=system#/](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard?__theme=system#/)
+
+[https://epoch.ai/eci?view=graph&tab=release-date](https://epoch.ai/eci?view=graph&tab=release-date)
 
 ## HuggingFace Open LLM Leaderboard
 
-*Describe the Open LLM Leaderboard benchmarks: IFEval, BBH, MATH Lvl 5, GPQA, MUSR, MMLU-PRO.*
+| Benchmark | What it tests | Categories / content | Format | Origin |
+|---|---|---|---|---|
+| **IFEval** (Instruction-Following Eval) | Whether a model follows explicit, automatically checkable formatting instructions, such as "answer in under 100 words," "no commas," or "use JSON." | About 25 verifiable instruction types: length limits, keywords, punctuation, case, output format (JSON, bullets), sections | ~500 prompts, scored on strict instruction-level and prompt-level accuracy | US, Google Research (Zhou et al., 2023) |
+| **BBH** (BIG-Bench Hard) | Multistep reasoning on the 23 hardest tasks from BIG-Bench, where earlier models underperformed humans | Multistep arithmetic, logical deduction, causal judgement, date understanding, boolean expressions, navigation, object tracking, sarcasm detection, and more | ~6.5K questions, few-shot (3-shot), exact match | US, Stanford and Google Research (Suzgun et al., 2022) |
+| **MATH Lvl 5** | Competition-level math (AMC/AIME style), limited to the hardest difficulty tier (Level 5) of the MATH dataset | Algebra, intermediate algebra, prealgebra, precalculus, geometry, number theory, counting & probability | Free-form answers in LaTeX `\boxed{}`, 4-shot, exact match | US, UC Berkeley (Hendrycks et al., 2021) |
+| **GPQA** (Graduate-Level Google-Proof Q&A) | Expert-level science questions that are hard to answer even with web search. PhD-level experts score about 65%, while skilled non-experts with Google score about 34%. | Biology, physics, chemistry (with subfields such as organic chemistry, quantum mechanics, molecular biology) | 448 multiple-choice questions (4 options), 0-shot, accuracy (dataset is gated) | US, NYU with Cohere and Anthropic (Rein et al., 2023) |
+| **MuSR** (Multistep Soft Reasoning) | Reasoning over long (~1,000-word) narratives that requires combining facts with commonsense, tracking entities, and making long-range inferences | Murder mysteries, object placement (who thinks what is where), team allocation | ~750 multiple-choice problems generated algorithmically, 0-shot, accuracy | US, UT Austin (Sprague et al., 2023) |
+| **MMLU-Pro** | A harder, cleaner version of MMLU focused on reasoning rather than recall. It has 10 answer options instead of 4, and noisy or trivial questions were removed. | 14 disciplines: math, physics, chemistry, biology, engineering, computer science, law, economics, business, health, psychology, philosophy, history, other | ~12K multiple-choice questions (10 options), 5-shot, accuracy | Canada, TIGER-Lab at the University of Waterloo (Wang et al., 2024) |
 
-## ECI (Epoch Composite Index)
+The Open LLM Leaderboard was a public ranking of open-weight language models hosted by Hugging Face, launched in 2023. It evaluated submitted models automatically on the same fixed set of benchmarks, using EleutherAI’s lm-evaluation-harness, so their scores could be compared directly. Version 2 arrived in mid-2024 and used the six benchmarks above, which replaced an earlier set that top models had largely saturated. It ranked models by the average of their normalized scores. For a while it was the main reference point for comparing open models such as Llama, Qwen and Mistral fine-tunes.
 
-*Describe the ECI dataset, benchmark selection methodology, and coverage.*
+
+## ECI (Epoch Capabilities Index)
+
+I encourage readers to check out the [EPOCH AI site](https://epoch.ai/benchmarks?view=graph&tab=eci) to learn more about the EPOCH AI data. The key note here is that the Epoch Capabilities Index is a weighted average over benchmark scores BUT not all models have a score for all the trained benchmark. In order to do proper analysis I filtered to only use optimal subsets of benchmarks and models such that each model would have a score in the benchmark subset. The data is updating every few days as they bring in new models and fill in benchmark scores so as time elapses this data source will be more filled and allows me to analyze the closed source models. 
 
 ## Methodology
 
