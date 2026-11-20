@@ -26,8 +26,9 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install pandas numpy scikit-learn scipy umap-learn plotly \
-                      pyarrow huggingface_hub requests
+          pip install pandas==3.1.0 numpy==2.5.4 scikit-learn==1.9.1 scipy==1.18.1 \
+                      umap-learn==0.5.12 plotly==7.1.0 pyarrow==26.0.0 \
+                      huggingface_hub==2.4.0 requests==2.34.2
 
       - name: Pre-compute visualization data
         run: python precompute.py

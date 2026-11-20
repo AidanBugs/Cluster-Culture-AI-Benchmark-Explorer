@@ -2,6 +2,7 @@ project:
   type: website
   render:
     - index.qmd
+    - visualizations.qmd
     - about-data.qmd
     - essay.qmd
 
@@ -9,8 +10,10 @@ website:
   title: "Mapping the Cultural Fingerprints of LLMs"
   navbar:
     left:
-      - text: "Visualizations"
+      - text: "Home"
         href: index.qmd
+      - text: "Visualizations"
+        href: visualizations.qmd
       - text: "About the Data"
         href: about-data.qmd
       - text: "Essay"
@@ -23,7 +26,7 @@ website:
         - section: "Open LLM / ECI"
           contents:
             - text: "All Visualizations"
-              href: index.qmd
+              href: visualizations.qmd
         - section: "Background"
           contents:
             - text: "About the Data"

@@ -4,13 +4,17 @@
 Usage:
     python precompute.py              # use existing CSVs
     python precompute.py --refresh    # download fresh HF data first
+    python precompute.py --refresh-eci  # download fresh ECI data first
 
-Outputs JSON files to precomputed/ that main.qmd loads client-side.
+Outputs JSON files to precomputed/ that visualizations.qmd loads client-side.
 """
 
 import argparse
+import io
 import json
 import sys
+import urllib.request
+import zipfile
 from itertools import combinations
 from pathlib import Path
 
@@ -29,6 +33,8 @@ from sklearn.tree import DecisionTreeClassifier
 
 DATA_DIR = Path("data")
 OUT_DIR = Path("precomputed")
+ECI_ZIP_URL = "https://epoch.ai/data/benchmark_data.zip"
+ECI_FILES = ["eci_scores.csv", "processed_data_for_eci.csv"]
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -53,7 +59,7 @@ def safe_val(val):
     return val
 
 
-META_COLS = ["Origin", "Company", "Release Year", "Country", "Organization", "Access", "eci"]
+META_COLS = ["Origin", "Company", "Upload Year", "Release Year", "Country", "Organization", "Access", "eci"]
 
 
 def make_point(row, extra_cols=None):
@@ -172,7 +178,8 @@ def compute_scatter_data(df, benchmarks):
 # ── Classifier ────────────────────────────────────────────────────────────────
 
 def compute_classifier(df, benchmarks, classifier, target_col, target_label,
-                       origins, origin_label, top_n=8, min_coverage=0.5):
+                       origins, origin_label, top_n=8, min_coverage=0.5,
+                       drop_missing=False):
     df = df.copy()
     coverage = df[benchmarks].notna().mean(axis=1)
     df = df[coverage >= min_coverage]
@@ -180,6 +187,9 @@ def compute_classifier(df, benchmarks, classifier, target_col, target_label,
     if origins is not None:
         origin_col = "Origin" if "Origin" in df.columns else "Country"
         df = df[df[origin_col].isin(origins)]
+
+    if drop_missing:
+        df = df[df[target_col].notna()]
 
     y_raw = df[target_col].astype(object).fillna("Unknown").astype(str)
     top_classes = set(y_raw.value_counts().head(top_n).index)
@@ -217,6 +227,8 @@ def compute_classifier(df, benchmarks, classifier, target_col, target_label,
     y_pred = clf.predict(X_te)
     y_prob = clf.predict_proba(X_te)
     acc = float(accuracy_score(y_te, y_pred))
+    baseline_label = pd.Series(y_tr).value_counts().index[0]
+    baseline_acc = float(np.mean(y_te == baseline_label))
     cm = confusion_matrix(y_te, y_pred, labels=labels)
 
     # ROC curves
@@ -253,6 +265,8 @@ def compute_classifier(df, benchmarks, classifier, target_col, target_label,
 
     return {
         "accuracy": acc,
+        "baseline_accuracy": baseline_acc,
+        "baseline_label": baseline_label,
         "clf_name": clf_name,
         "target_label": target_label,
         "origin_label": origin_label,
@@ -272,7 +286,7 @@ def precompute_hf():
     df = pd.read_csv(DATA_DIR / "llm_benchmarks.csv")
     df["Company"] = df["Model"].str.split("/").str[0]
     df["Release Date"] = pd.to_datetime(df["Release Date"], errors="coerce")
-    df["Release Year"] = df["Release Date"].dt.year.astype("Int64")
+    df["Upload Year"] = df["Release Date"].dt.year.astype("Int64")
 
     benchmarks = [
         "oll_BBH", "oll_GPQA", "oll_IFEval", "oll_MATH_lvl5", "oll_MMLU_PRO", "oll_MUSR",
@@ -293,7 +307,7 @@ def precompute_hf():
     targets = {
         "origin":       ("Origin",       "Origin / Country"),
         "company":      ("Company",      "Company"),
-        "release_year": ("Release Year", "Release Year"),
+        "upload_year":  ("Upload Year",  "Upload Year"),
     }
     origin_filters = {
         "us_china": (["United States", "China"], "United States, China"),
@@ -308,7 +322,7 @@ def precompute_hf():
                 print(f"    {key}...", end=" ")
                 result = compute_classifier(
                     df, benchmarks, clf_key, tgt_col, tgt_label,
-                    orig_list, orig_label,
+                    orig_list, orig_label, drop_missing=(tgt_key == "upload_year"),
                 )
                 if result:
                     clf_results[key] = result
@@ -319,7 +333,7 @@ def precompute_hf():
     return {
         "name": "Open LLM Leaderboard",
         "benchmarks": benchmarks,
-        "color_fields": ["Origin", "Company", "Release Year"],
+        "color_fields": ["Origin", "Company", "Upload Year"],
         "pca_2d": pca_2d,
         "pca_3d": pca_3d,
         "pca_loadings": loadings,
@@ -441,11 +455,27 @@ def refresh_hf_data(arena: bool = False, enrich_dates: bool = False,
     print(f"  Wrote {len(df)} rows × {len(df.columns)} cols → {out_csv}\n")
 
 
+def refresh_eci_data():
+    """Download fresh ECI data from Epoch AI's benchmarking hub."""
+    print("=== Downloading fresh ECI data ===")
+    with urllib.request.urlopen(ECI_ZIP_URL, timeout=120) as resp:
+        archive = zipfile.ZipFile(io.BytesIO(resp.read()))
+    for name in ECI_FILES:
+        out = DATA_DIR / name
+        out.write_bytes(archive.read(f"epoch_capabilities_index/{name}"))
+        print(f"  Wrote {out}")
+    print()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pre-compute visualization data.")
     parser.add_argument(
         "--refresh", action="store_true",
         help="Download fresh HF leaderboard data before computing",
+    )
+    parser.add_argument(
+        "--refresh-eci", action="store_true",
+        help="Download fresh ECI data from Epoch AI before computing",
     )
     parser.add_argument(
         "--arena", action="store_true",
@@ -469,6 +499,8 @@ if __name__ == "__main__":
             enrich_dates=args.enrich_dates,
             hf_token=args.hf_token,
         )
+    if args.refresh_eci:
+        refresh_eci_data()
 
     hf = precompute_hf()
     out = OUT_DIR / "hf.json"
@@ -484,4 +516,4 @@ if __name__ == "__main__":
         json.dump(eci, f, cls=NumpyEncoder)
     print(f"  {out.stat().st_size / 1024:.0f} KB")
 
-    print("\nDone! Now run: quarto render main.qmd")
+    print("\nDone! Now run: quarto render")
