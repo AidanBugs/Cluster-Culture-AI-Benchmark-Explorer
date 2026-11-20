@@ -4,8 +4,15 @@ subtitle: "An Embedding Space Analysis of Benchmark Performance"
 title-block-banner: true
 ---
 
-*Add introduction here.*
+## What is this Project?
+This project acts as both a tool and analysis for derving insights on AI benchmark data. 
 
-- [Visualizations](visualizations.qmd)
-- [About the Data](about-data.qmd)
-- [Essay](essay.qmd)
+## How can I use the Tool?
+All visualizations can be found [here](visualizations.qmd) or in the visualizations tab. There are a wide variety of interactive plots and graphs for users to derive insights. Tooltips on the meaning of the graphs are on the way!
+
+
+## Where is the Data From?
+Check out the [About the Data](about-data.qmd) tab to learn more about the data, the benchmarks and some of the data processing techniques.
+
+## What Are Your Findings?
+Findings and results are wrriten in the [Essay](essay.qmd) tab.
