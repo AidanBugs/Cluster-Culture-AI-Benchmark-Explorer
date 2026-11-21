@@ -1,0 +1,11 @@
+<script>
+// Quarto marks a navbar link active on every page in the same sidebar;
+// highlight only the link for the current page instead.
+document.querySelectorAll(".navbar .nav-link").forEach(a => {
+  const page = p => p.replace(/index\.html$/, "");
+  const here = page(a.pathname) === page(location.pathname);
+  a.classList.toggle("active", here);
+  if (here) a.setAttribute("aria-current", "page");
+  else a.removeAttribute("aria-current");
+});
+</script>

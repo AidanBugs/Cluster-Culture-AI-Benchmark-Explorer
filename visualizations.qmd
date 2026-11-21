@@ -44,6 +44,37 @@ markerSizeScatter = Math.max(5, Math.round(width / 142))
 </style>
 ```
 
+```{=html}
+<style>
+  .term { border-bottom: 1px dotted currentColor; cursor: help; }
+</style>
+<script>
+const GLOSSARY = {
+  pca: "Principal Component Analysis: boils many benchmark scores down to a few summary numbers while keeping as much of the difference between models as possible.",
+  pc: "Principal component: one of those summary numbers. PC1 captures the biggest differences between models, PC2 the next biggest, and so on.",
+  variance: "Explained variance: the share of all the differences between models that this axis captures. Higher means the axis tells more of the story.",
+  standardized: "Standardized: each benchmark is rescaled to the same range so they can be compared, even if one is scored out of 100 and another out of 1.",
+  loading: "Loading: how strongly a benchmark pushes models along a principal component. Big positive or negative values mean that benchmark matters a lot for that axis.",
+  umap: "UMAP: places models with similar score patterns near each other. Good at showing clusters, but the axes and the distances between far-apart clusters have no direct meaning.",
+  spearman: "Spearman correlation: a number from -1 to 1. Near 1 means two things rise together, near -1 means one rises as the other falls, near 0 means no clear link.",
+  classifier: "Classifier: a model that learns from examples to sort things into groups, here guessing a model's origin, company or upload year from its benchmark scores.",
+  test: "Test set: models held back during training, so the classifier is graded on models it has never seen.",
+  baseline: "Baseline: the accuracy you would get by always guessing the most common group. A useful classifier should clearly beat it.",
+  roc: "ROC curve: shows the trade-off between catching members of a group and wrongly flagging others, as the classifier is made more or less strict.",
+  auc: "AUC (area under the curve): 0.5 means no better than a coin flip, 1.0 means perfect separation.",
+  importance: "Feature importance: how much the classifier relied on each benchmark when making its guesses.",
+};
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".term").forEach(el => { el.tabIndex = 0; });
+  tippy(".term", {
+    content: el => GLOSSARY[el.dataset.term] || "",
+    theme: "quarto",
+    maxWidth: 320,
+  });
+});
+</script>
+```
+
 ```{ojs}
 //| echo: false
 viewof dataset = Inputs.radio(
@@ -69,6 +100,17 @@ scoreHover = p => [
 ```
 
 ## PCA — 2D
+
+*Which AI models have similar strengths and weaknesses?* Each dot is a model, placed by [PCA]{.term data-term="pca"}.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Each dot is one AI model. Hover over it to see its benchmark scores.
+- Models with similar score patterns sit close together; models far apart performed differently.
+- The axes are [principal components]{.term data-term="pc"}, not individual benchmarks. The percentage on each axis is its [explained variance]{.term data-term="variance"}.
+- Colors show where the model's developer is based. If colors form separate clumps, models from different places tend to score differently.
+- Scores are [standardized]{.term data-term="standardized"} first, and a model's missing scores are filled in with that benchmark's average.
+:::
 
 ```{ojs}
 //| echo: false
@@ -100,6 +142,15 @@ scoreHover = p => [
 ```
 
 ## PCA — 3D
+
+*The same picture as above, with a third axis for more detail.*
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Same as the 2D chart, plus a third [principal component]{.term data-term="pc"} (PC3) for depth.
+- Drag to rotate, scroll to zoom, and double-click to reset the view.
+- Use it to check whether groups that overlap in 2D separate once you add depth.
+:::
 
 ```{ojs}
 //| echo: false
@@ -135,6 +186,17 @@ scoreHover = p => [
 ```
 
 ## PCA — Loadings
+
+*What do the PCA axes actually measure?* Each [loading]{.term data-term="loading"} shows how much a benchmark shapes each axis.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Each benchmark has one bar (or heatmap cell) per [principal component]{.term data-term="pc"}.
+- Large values, positive or negative, mean that benchmark strongly drives that axis. Values near 0 mean it barely matters.
+- The sign gives direction: on an axis with a positive loading, models further along that axis scored higher on that benchmark.
+- If every benchmark has a similar loading on PC1, PC1 is roughly "overall ability".
+- The heatmap shows the same numbers as the bar chart, with color for size and direction (see its color bar).
+:::
 
 ```{ojs}
 //| echo: false
@@ -191,6 +253,16 @@ scoreHover = p => [
 
 ## UMAP — 2D
 
+*Another way to find clusters of similar models,* using [UMAP]{.term data-term="umap"}.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Like PCA, each dot is a model and similar models end up near each other.
+- UMAP is better at revealing tight clusters, but **the axes have no units or meaning**, and the distance between two far-apart clusters doesn't tell you how different they are.
+- Focus on which models clump together and whether a cluster is mostly one color.
+- The next chart shows which benchmarks line up with each UMAP axis.
+:::
+
 ```{ojs}
 //| echo: false
 {
@@ -221,6 +293,16 @@ scoreHover = p => [
 ```
 
 ## UMAP — Dimension Correlation
+
+*Which benchmarks line up with the UMAP axes?* Measured with [Spearman correlation]{.term data-term="spearman"}.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Each bar compares one benchmark with one UMAP axis.
+- Near +1: models further along that axis tend to score higher on that benchmark. Near −1: they tend to score lower. Near 0: no clear link.
+- This gives the otherwise meaningless UMAP axes a rough interpretation.
+- The heatmap shows the same numbers in color.
+:::
 
 ```{ojs}
 //| echo: false
@@ -278,6 +360,16 @@ scoreHover = p => [
 ```
 
 ## Custom-Axis Scatter
+
+*Compare any two benchmarks directly.* Pick the axes and coloring below.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Each dot is a model. Its position shows its actual score on the two benchmarks you picked, with no transformation.
+- Dots toward the top right did well on both; a rising diagonal pattern means the two benchmarks tend to agree.
+- Change "Color By" to see whether origin, company or year groups score differently.
+- Only models with scores on both benchmarks are shown; the count is under the title.
+:::
 
 ::: {.controls-row}
 
@@ -341,6 +433,16 @@ viewof scatter_color = Inputs.select(data.color_fields, {
 
 ## Classifier
 
+*Can you tell where a model comes from just by its benchmark scores?* A [classifier]{.term data-term="classifier"} tries to guess.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Pick a classifier method, what it should guess (the target) and which models to include.
+- The classifier learns from three quarters of the models, then is graded on the remaining quarter, the [test set]{.term data-term="test"}.
+- Only the 8 most common groups are kept, and groups with fewer than 3 models are dropped.
+- If it guesses well above the [baseline]{.term data-term="baseline"}, models from different groups really do have different benchmark "fingerprints".
+:::
+
 ::: {.controls-row}
 
 ```{ojs}
@@ -382,6 +484,16 @@ clf_result = data.classifier_results.hasOwnProperty(clf_key) ? data.classifier_r
 
 ### Confusion Matrix
 
+*Where does the classifier get it right, and what does it confuse?*
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Rows are the true group and columns are the classifier's guess.
+- The diagonal from top left to bottom right shows correct guesses; anything off it is a mistake.
+- Numbers are counts of models. Darker color means a higher share of that row, so each row's colors show how that group's models were labeled.
+- Compare the accuracy in the title with the "always guessing" [baseline]{.term data-term="baseline"}. A small gap means the classifier learned little.
+:::
+
 ```{ojs}
 //| echo: false
 {
@@ -420,6 +532,16 @@ clf_result = data.classifier_results.hasOwnProperty(clf_key) ? data.classifier_r
 
 ### ROC Curve
 
+*How well does the classifier separate each group from the rest?* Shown as an [ROC curve]{.term data-term="roc"}.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- There is one curve per group. Curves bowing toward the top left corner are better.
+- The dashed diagonal is random guessing.
+- Each curve's [AUC]{.term data-term="auc"} sums it up as one number: 0.5 is a coin flip and 1.0 is perfect. The title shows the average across groups.
+- AUC for small groups is less reliable because few test models are behind it.
+:::
+
 ```{ojs}
 //| echo: false
 {
@@ -454,6 +576,16 @@ clf_result = data.classifier_results.hasOwnProperty(clf_key) ? data.classifier_r
 ```
 
 ### Feature Importances
+
+*Which benchmarks did the classifier rely on most?* See [feature importance]{.term data-term="importance"}.
+
+::: {.callout-tip collapse="true"}
+## How to read this chart
+- Longer bars mean the classifier leaned more on that benchmark to tell groups apart.
+- For Decision Tree, this is how much each benchmark improved its splits. For Logistic Regression, it is the average size of each benchmark's weight.
+- SVM has no built-in measure, so nothing is shown for it.
+- Importance shows what helps tell groups apart, not which benchmark is "better".
+:::
 
 ```{ojs}
 //| echo: false

@@ -5,11 +5,12 @@ title-block-banner: true
 ---
 
 ## What is this Project?
-This project acts as both a tool and analysis for derving insights on AI benchmark data. 
+This project acts as both a tool and analysis for derving insights on AI benchmark data. The idea is to treat every benchmark as its own dimension, or axis on a graph and see what insights we can derive from the benchmark data in aggregate. My primary grievance is that oftentimes benchmarks are incredibly reductionistic in the sense that they reduce these complex models to a single score that is designed to capture a piece of the whole. Some analyses take a model's average across a multitude of benchmark to label this as some for m of "average performance" but I feel in doing this we miss out on so much context rich data. 
+
+I have found that basic machine learning classifier models are able to determine with high accuracy where a model is from solely based on their benchmark data. This is an immediate flag that either benchmarks are truly not as objective as we praise them to be or that there is significant cultural nuances in models that we have yet to fully explore.
 
 ## How can I use the Tool?
 All visualizations can be found [here](visualizations.qmd) or in the visualizations tab. There are a wide variety of interactive plots and graphs for users to derive insights. Tooltips on the meaning of the graphs are on the way!
-
 
 ## Where is the Data From?
 Check out the [About the Data](about-data.qmd) tab to learn more about the data, the benchmarks and some of the data processing techniques.

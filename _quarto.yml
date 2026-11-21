@@ -23,6 +23,8 @@ website:
     - title: "Visualizations"
       style: docked
       contents:
+        - text: "Home"
+          href: index.qmd
         - section: "Open LLM / ECI"
           contents:
             - text: "All Visualizations"
@@ -41,3 +43,4 @@ format:
     toc-depth: 3
     echo: false
     code-tools: false
+    include-after-body: _nav-active.html
