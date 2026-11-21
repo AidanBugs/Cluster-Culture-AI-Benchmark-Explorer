@@ -3,6 +3,8 @@ name: Build & Deploy Quarto Site
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 12 * * 1"  # Mondays 12:00 UTC, picks up new ECI data
   workflow_dispatch:
 
 permissions:
@@ -30,8 +32,8 @@ jobs:
                       umap-learn==0.5.12 plotly==7.1.0 pyarrow==26.0.0 \
                       huggingface_hub==2.4.0 requests==2.34.2
 
-      - name: Pre-compute visualization data
-        run: python precompute.py
+      - name: Pre-compute visualization data (with fresh ECI data)
+        run: python precompute.py --refresh-eci
 
       - uses: quarto-dev/quarto-actions/setup@v2
 

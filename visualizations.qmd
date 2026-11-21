@@ -109,7 +109,7 @@ scoreHover = p => [
 - Models with similar score patterns sit close together; models far apart performed differently.
 - The axes are [principal components]{.term data-term="pc"}, not individual benchmarks. The percentage on each axis is its [explained variance]{.term data-term="variance"}.
 - Colors show where the model's developer is based. If colors form separate clumps, models from different places tend to score differently.
-- Scores are [standardized]{.term data-term="standardized"} first, and a model's missing scores are filled in with that benchmark's average.
+- Scores are [standardized]{.term data-term="standardized"} first, and models without scores on every benchmark are left out.
 :::
 
 ```{ojs}
